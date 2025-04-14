@@ -1,7 +1,11 @@
 # Environment variables and secrets
 .env
-.env.*
-*.env
+.env.local
+.env.development
+.env.test
+.env.production
+# Allow example environment file
+!.env.example
 .venv
 env/
 venv/
