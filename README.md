@@ -56,10 +56,12 @@ The application consists of several components:
 
 2. Create a `.env` file with your API keys:
    ```
-   GOOGLE_API_KEY=your_google_api_key
-   HF_TOKEN=your_huggingface_token
-   OPEN_API_KEY=your_openai_key
+   GEMINI_API_KEY=your_gemini_api_key_here
+   GITHUB_TOKEN=your_github_token_here
+   OPENAI_API_KEY=your_openai_api_key_here
    ```
+
+   A template file `.env.example` is provided for reference.
 
 3. Start the services using Docker Compose:
    ```bash
@@ -98,10 +100,10 @@ The application consists of several components:
    ```bash
    # Start Ollama BGE service
    docker run -d --name langcache-ollama -p 8080:8080 artifactory.dev.redislabs.com:443/cloud-docker-dev-local/ai-services/langcache:0.0.7
-   
+
    # Start Redis Langcache service
    docker run -d --name langcache-redis -p 8081:8080 artifactory.dev.redislabs.com:443/cloud-docker-dev-local/ai-services/langcache:0.0.7
-   
+
    # Start OpenAI service
    docker run -d --name langcache-openai -p 8082:8080 artifactory.dev.redislabs.com:443/cloud-docker-dev-local/ai-services/langcache:0.0.7
    ```
