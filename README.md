@@ -59,9 +59,12 @@ The application consists of several components:
    GEMINI_API_KEY=your_gemini_api_key_here
    GITHUB_TOKEN=your_github_token_here
    OPENAI_API_KEY=your_openai_api_key_here
+   HF_TOKEN=your_huggingface_token_here
    ```
 
    A template file `.env.example` is provided for reference.
+
+   **IMPORTANT**: The application requires all these API keys to function properly. The docker-compose.yaml file references these environment variables to avoid hardcoding sensitive credentials.
 
 3. Start the services using Docker Compose:
    ```bash

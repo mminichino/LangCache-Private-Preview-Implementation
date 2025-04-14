@@ -34,6 +34,8 @@ services:
       - "11435:11434"
     volumes:
       - ./custom-embeddings:/app
+    env_file:
+      - .env
 
   langcache-ollama:
     image: "artifactory.dev.redislabs.com:443/cloud-docker-dev-local/ai-services/langcache:0.0.7"
@@ -61,8 +63,10 @@ services:
       - "8081:8080"
     environment:
       METADATABASE_URLS: redis://metadata-db:6379
-      EMBEDDINGS_CATALOG_JSON: "{\"defaultModel\":\"redis-langcache\",\"models\":{\"redis-langcache\":{\"apiKey\":\"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\",\"baseUrl\":\"http://custom-embeddings:11434\",\"dimensions\":768,\"name\":\"redis/langcache-embed-v1\"}}}"
+      EMBEDDINGS_CATALOG_JSON: "{\"defaultModel\":\"redis-langcache\",\"models\":{\"redis-langcache\":{\"apiKey\":\"${HF_TOKEN}\",\"baseUrl\":\"http://custom-embeddings:11434\",\"dimensions\":768,\"name\":\"redis/langcache-embed-v1\"}}}"
       LOGGING_LEVEL_ROOT: info
+    env_file:
+      - .env
 
   langcache-openai:
     image: "artifactory.dev.redislabs.com:443/cloud-docker-dev-local/ai-services/langcache:0.0.7"
@@ -75,8 +79,10 @@ services:
       - "8082:8080"
     environment:
       METADATABASE_URLS: redis://metadata-db:6379
-      EMBEDDINGS_CATALOG_JSON: "{\"defaultModel\":\"openai-embeddings\",\"models\":{\"openai-embeddings\":{\"apiKey\":\"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\",\"baseUrl\":\"https://api.openai.com\",\"dimensions\":1536,\"name\":\"text-embedding-3-small\"}}}"
+      EMBEDDINGS_CATALOG_JSON: "{\"defaultModel\":\"openai-embeddings\",\"models\":{\"openai-embeddings\":{\"apiKey\":\"${OPENAI_API_KEY}\",\"baseUrl\":\"https://api.openai.com\",\"dimensions\":1536,\"name\":\"text-embedding-3-small\"}}}"
       LOGGING_LEVEL_ROOT: info
+    env_file:
+      - .env
 
 volumes:
   ollama_data:
