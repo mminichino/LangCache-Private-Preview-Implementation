@@ -1,0 +1,107 @@
+# Environment variables and secrets
+.env
+.env.*
+*.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Flask
+instance/
+.webassets-cache
+flask_session/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Virtual Studio Code
+.vscode/
+*.code-workspace
+.history
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+*.iws
+.idea_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Icon?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Redis
+dump.rdb
+appendonly.aof
+
+# Temporary files
+*.swp
+*.swo
+*~
+*.tmp
+*.bak
+*.backup
