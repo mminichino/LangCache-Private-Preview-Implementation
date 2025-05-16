@@ -4,7 +4,9 @@
 [![GitHub stars](https://img.shields.io/github/stars/redis/langcache-demo)](https://github.com/redis/langcache-demo/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/redis/langcache-demo)](https://github.com/redis/langcache-demo/issues)
 
-## Quick Setup
+## Quick Setup of this app if you want to test out LangCache
+
+**This repository demonstrates how to integrate LangCache with your applications. While you can experiment with this demo app, the primary purpose is to showcase how to implement LangCache in your own projects**
 
 1. Clone this repository:
    ```sh
@@ -32,7 +34,7 @@
 5. Open the demo application:
    [http://localhost:5001](http://localhost:5001)
 
-## Overview
+## LangCache Overview
 
 This repository is a demonstration project I've prepared to showcase how to use **LangCache**, a production-ready, RESTful service for semantic caching of LLM (Large Language Model) responses using Redis as a vector database. The focus is on helping you implement LangCache with your preferred embedding model, not on teaching LLM application development.
 
@@ -93,7 +95,7 @@ LangCache is designed with a modular architecture that separates concerns and al
    ```
 
 2. **Choose your embedding model:**
-   LangCache supports multiple embedding models. This demo showcases three options:
+   LangCache supports multiple embedding models so you can choose what option you want to go with for your LangCache. This demo showcases three options:
 
    **Option 1: Redis Langcache Embedding (Default)**
    ```sh
@@ -133,14 +135,6 @@ LangCache is designed with a modular architecture that separates concerns and al
    # Remove the Docker image
    docker image ls | grep langcache | awk '{print $3}' | xargs docker image rm
    ```
-
-### Embedding Model Comparison
-
-| Model | Pros | Cons | Setup |
-|-------|------|------|-------|
-| **Redis: langcache-embed-v1** | - No usage costs<br>- Good performance<br>- Privacy-friendly<br>- **Default in this demo** | - Requires HF token<br>- 384 dimensions | `docker-compose up -d langcache-redis embeddings` |
-| **OpenAI** | - State-of-the-art quality<br>- Simple setup | - Usage costs<br>- Data sent to OpenAI | `docker-compose up -d langcache-openai` |
-| **Ollama** | - Fully local<br>- No API keys<br>- Privacy-friendly | - Higher resource usage<br>- Slower startup | `docker-compose up -d langcache-ollama ollama` |
 
 ### Kubernetes Deployment
 
