@@ -97,7 +97,7 @@ LangCache is designed with a modular architecture that separates concerns and al
 2. **Choose your embedding model:**
    LangCache supports multiple embedding models so you can choose what option you want to go with for your LangCache. This demo showcases three options:
 
-   **Option 1: Redis Langcache Embedding (Default)**
+   **Option 1: Redis Langcache Embedding (Default in this app )**
    ```sh
    docker-compose up -d langcache-redis embeddings
    ```
