@@ -64,16 +64,16 @@ README.md
 
 ---
 
-## Architecture
+## Core components
 
 LangCache is designed with a modular architecture that separates concerns and allows for flexible deployment options:
 
 - **LangCache Service**: Core RESTful API that handles all cache operations, vector similarity search, and metrics
-- **Embeddings API**: Provides vector embeddings for queries with support for multiple models:
-  - Redis Langcache: Uses the `redis/langcache-embed-v1` model from Hugging Face
-  - OpenAI: Integrates with OpenAI's embedding models
-  - Ollama: Uses local embedding models for self-hosted deployments
-- **Redis**: Serves as the vector database that stores embeddings and cached responses, enabling fast similarity search
+   - **Embeddings API**: Provides vector embeddings for queries with support for multiple models:
+     - Redis Langcache: Uses the `redis/langcache-embed-v1` model from Hugging Face
+     - OpenAI: Integrates with OpenAI's embedding models
+     - Ollama: Uses local embedding models for self-hosted deployments
+- **Redis**: Serves as the database that stores embeddings and cached responses, enabling fast similarity search
 - **Demo Application**: (Optional) Provides a user interface to demonstrate LangCache capabilities and visualize cache performance
 
 ---
