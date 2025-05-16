@@ -78,6 +78,77 @@ LangCache is designed with a modular architecture that separates concerns and al
 
 ---
 
+## Workflow Comparison
+
+### Traditional LLM Application Flow (Without LangCache)
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  User Query  │────▶│  LLM API    │────▶│  Response   │
+└─────────────┘     │  (OpenAI,   │     │  to User    │
+                    │  Gemini,    │     └─────────────┘
+                    │  etc.)      │
+                    └─────────────┘
+```
+
+1. **User Query**: Application receives a query from the user
+2. **LLM Processing**: Query is sent directly to the LLM API (OpenAI, Gemini, etc.)
+3. **Response**: LLM generates a response and returns it to the user
+
+**Limitations**:
+- Every query requires a full LLM API call (high latency, 1-10 seconds)
+- Repeated or similar questions incur the same cost and delay
+- API costs accumulate with each query
+- No ability to reuse previous responses
+
+### LangCache-Enhanced LLM Application Flow
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  User Query  │────▶│  Embedding  │────▶│  Cache      │────▶│  Response   │
+└─────────────┘     │  Generation │     │  Lookup     │     │  to User    │
+                    └─────────────┘     └──────┬──────┘     └─────────────┘
+                                               │                    ▲
+                                               │ Cache Miss         │
+                                               ▼                    │
+                                        ┌─────────────┐     ┌─────────────┐
+                                        │  LLM API    │────▶│  Cache      │
+                                        │  (OpenAI,   │     │  Storage    │
+                                        │  Gemini)    │     └─────────────┘
+                                        └─────────────┘
+```
+
+#### Key Components of the LangCache Flow:
+
+1. **Cache Initialization**:
+   - Create a cache with a specific embedding model (Redis Langcache, OpenAI, Ollama)
+   - Define similarity threshold (e.g., 0.85) for semantic matching
+   - Set TTL (time-to-live) for cache entries if needed
+   - Cache ID is returned and stored for future operations
+
+2. **Embedding Generation**:
+   - User query is converted to a vector embedding using the selected model
+   - This embedding represents the semantic meaning of the query
+   - The embedding service handles all model-specific operations
+
+3. **Cache Lookup (Semantic Search)**:
+   - The query embedding is compared to all stored embeddings in Redis
+   - Redis performs a vector similarity search (KNN)
+   - If a match above the similarity threshold is found, it's a cache hit
+   - If no match is found, it's a cache miss
+
+4. **Response Handling**:
+   - **Cache Hit**: Return the cached response immediately (milliseconds)
+   - **Cache Miss**: Forward the query to the LLM API, then store the response in the cache for future use
+
+**Benefits**:
+- Dramatically reduced response times for similar queries (milliseconds vs. seconds)
+- Lower API costs through reuse of previous responses
+- Semantic matching finds relevant responses even when queries are worded differently
+- Scalable with Redis as the vector database backend
+
+---
+
 ## LangCache Deployment Guide
 
 ### Prerequisites
