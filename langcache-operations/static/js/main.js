@@ -100,43 +100,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error with semantic cache:', error);
         });
 
-        // 2. Standard LLM version
-        fetch('/query', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                query: query,
-                use_cache: false,
-                llm_model: llmModelSelect.value
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Remove loading message
-            standardChat.removeChild(standardLoadingMsg);
-
-            // Use server-reported time for more accurate demonstration
-            const timeTaken = data.time_taken.toFixed(2);
-
-            // Display response time
-            standardTimeDisplay.textContent = `${timeTaken}s`;
-
-            // Add response message - always show as LLM-generated for the direct LLM panel
-            // Even if the response is identical to the cached one, this panel always calls the LLM directly
-            addResponseMessage(standardChat, data.response, false, null);
-        })
-        .catch(error => {
-            standardChat.removeChild(standardLoadingMsg);
-            addErrorMessage(standardChat, 'Error with direct LLM: ' + error.message);
-            console.error('Error with direct LLM:', error);
-        })
-        .finally(() => {
-            // Update latency and query analysis data after query completes
-            updateDataAfterQuery();
-        });
-
         // Clear input
         queryInput.value = '';
     }

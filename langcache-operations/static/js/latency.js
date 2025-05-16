@@ -37,10 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update metrics for each embedding model
         updateModelMetrics('ollama-bge', data['ollama-bge']);
         updateModelMetrics('redis-langcache', data['redis-langcache']);
-        updateModelMetrics('openai-embeddings', data['openai-embeddings']);
-
-        // Update direct LLM metrics
-        updateDirectLLMMetrics(data['direct-llm']);
     }
 
     // Helper function to update metrics for a specific model
@@ -62,23 +58,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update cache hit rate
         document.getElementById(`${modelId}-cache-hit-rate`).textContent =
             modelData.cache_hit_rate ? (modelData.cache_hit_rate * 100).toFixed(1) + '%' : '-';
-    }
-
-    // Helper function to update direct LLM metrics
-    function updateDirectLLMMetrics(directLLMData) {
-        if (!directLLMData) return;
-
-        // Update LLM latency
-        document.getElementById('direct-llm-llm-latency').textContent =
-            directLLMData.current_llm_latency ? directLLMData.current_llm_latency.toFixed(2) + 's' : '-';
-
-        // Update most used model
-        document.getElementById('direct-llm-most-used-model').textContent =
-            directLLMData.most_used_model || '-';
-
-        // Update query count
-        document.getElementById('direct-llm-query-count').textContent =
-            directLLMData.query_count || '0';
     }
 
     // No auto-refresh - data will be updated when a new query is submitted

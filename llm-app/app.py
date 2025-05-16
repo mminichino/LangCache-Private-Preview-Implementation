@@ -9,7 +9,7 @@ import statistics
 from collections import defaultdict
 from dotenv import load_dotenv
 from google import genai
-from ngram_utils import estimate_cache_hit_probability, update_ngram_cache
+from log_manager import log_manager
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,10 +28,13 @@ LANGCACHE_INDEX_NAME = 'gemini_cache'
 
 # Define URLs for different embedding models
 LANGCACHE_URLS = {
-    'ollama-bge': 'http://localhost:8080',
-    'redis-langcache': 'http://localhost:8081',
-    'openai-embeddings': 'http://localhost:8082'
+    'ollama-bge': 'http://langcache-ollama:8080',
+    'redis-langcache': 'http://langcache-redis:8080',
+    'openai-embeddings': 'http://langcache-openai:8080'
 }
+
+# Enable debug mode
+DEBUG = True
 
 # Define cache IDs for different embedding models
 cache_ids = {}
@@ -40,12 +43,11 @@ DEFAULT_EMBEDDING_MODEL = 'redis-langcache'
 
 # Latency tracking
 latency_data = {
-    # Track metrics separately for each embedding model
     'ollama-bge': {
-        'llm': defaultdict(list),  # Format: {timestamp_str: [latency_values]}
-        'cache': defaultdict(list),  # Format: {timestamp_str: [latency_values]}
-        'embedding': defaultdict(list),  # Format: {timestamp_str: [latency_values]}
-        'redis': defaultdict(list),  # Format: {timestamp_str: [latency_values]}
+        'llm': defaultdict(list),
+        'cache': defaultdict(list),
+        'embedding': defaultdict(list),
+        'redis': defaultdict(list),
         'cache_hits': 0,
         'cache_misses': 0
     },
@@ -64,11 +66,6 @@ latency_data = {
         'redis': defaultdict(list),
         'cache_hits': 0,
         'cache_misses': 0
-    },
-    # New category for direct LLM queries (not tied to any embedding model)
-    'direct-llm': {
-        'llm': defaultdict(list),  # Format: {timestamp_str: [latency_values]}
-        'models': defaultdict(int)   # Count of queries by model name
     }
 }
 
@@ -117,6 +114,9 @@ def create_cache():
     """Create caches for each embedding model"""
     global cache_ids
 
+    if DEBUG:
+        print(f"DEBUG: Starting create_cache with LANGCACHE_URLS: {LANGCACHE_URLS}")
+
     for model_name, base_url in LANGCACHE_URLS.items():
         url = f"{base_url}/v1/admin/caches"
         payload = {
@@ -127,6 +127,10 @@ def create_cache():
             "defaultSimilarityThreshold": 0.85  # Updated threshold as requested
         }
 
+        if DEBUG:
+            print(f"DEBUG: Creating cache for {model_name} at URL: {url}")
+            print(f"DEBUG: Payload: {payload}")
+
         try:
             print(f"Creating cache for {model_name} at {base_url}...")
             response = requests.post(url, json=payload)
@@ -135,6 +139,8 @@ def create_cache():
                 cache_id = data.get('cacheId')
                 cache_ids[model_name] = cache_id
                 print(f"Cache for {model_name} created with ID: {cache_id}")
+                # Log cache creation event
+                log_manager.log_cache_creation(cache_id, model_name)
             else:
                 print(f"Error creating cache for {model_name}: {response.status_code} - {response.text}")
         except Exception as e:
@@ -143,9 +149,14 @@ def create_cache():
     # Return True if at least one cache was created successfully
     return len(cache_ids) > 0
 
-def search_cache(query, embedding_model="ollama-bge"):
+def search_cache(query, embedding_model="redis-langcache"):
     """Search for a similar query in the cache using the specified embedding model"""
     global operations_log
+
+    if DEBUG:
+        print(f"DEBUG: Starting search_cache for query: '{query}' with model: {embedding_model}")
+        print(f"DEBUG: Current cache_ids: {cache_ids}")
+        print(f"DEBUG: Current LANGCACHE_URLS: {LANGCACHE_URLS}")
 
     # Reset operations log for new query
     operations_log = {
@@ -194,32 +205,6 @@ def search_cache(query, embedding_model="ollama-bge"):
             }
         })
         return None
-
-    # Check if n-gram approximation is enabled
-    use_ngram = False
-    probability_threshold = 0.5
-
-    try:
-        # Load settings from request
-        settings_json = request.cookies.get('cacheSettings')
-        if settings_json:
-            settings = json.loads(settings_json)
-            use_ngram = settings.get('useNgramApproximation', False)
-            probability_threshold = settings.get('probabilityThreshold', 0.5)
-    except Exception as e:
-        print(f"Error loading settings: {e}")
-        use_ngram = False
-
-    # If n-gram approximation is enabled, check if we should skip embedding generation
-    if use_ngram and cached_queries:
-        # Estimate probability of cache hit using n-grams
-        probability = estimate_cache_hit_probability(query, cached_queries)
-        print(f"N-gram cache hit probability: {probability:.4f} (threshold: {probability_threshold})")
-
-        # If probability is below threshold, skip embedding generation
-        if probability < probability_threshold:
-            print(f"Skipping embedding generation due to low probability ({probability:.4f} < {probability_threshold})")
-            return None
 
     url = f"{base_url}/v1/caches/{cache_id}/search"
     payload = {
@@ -382,7 +367,7 @@ def search_cache(query, embedding_model="ollama-bge"):
         print(f"Error searching cache: {e}")
         return None
 
-def add_to_cache(query, response, embedding_model="ollama-bge"):
+def add_to_cache(query, response, embedding_model="redis-langcache"):
     """Add a new entry to the cache using the specified embedding model"""
     global operations_log
 
@@ -460,8 +445,6 @@ def add_to_cache(query, response, embedding_model="ollama-bge"):
             # If we have an entry ID, store the query for n-gram analysis
             if entry_id:
                 cached_queries[entry_id] = query
-                # Update n-gram cache
-                update_ngram_cache(query, entry_id)
                 print(f"Added query to n-gram cache with ID: {entry_id}")
 
                 # Update cache storage step if this is the same query
@@ -512,6 +495,7 @@ def add_to_cache(query, response, embedding_model="ollama-bge"):
 # Initialize cache on startup
 try:
     create_cache()
+    print("Cache initialization completed successfully.")
 except Exception as e:
     print(f"Warning: Could not initialize cache: {e}")
 
@@ -519,141 +503,141 @@ except Exception as e:
 def index():
     return render_template('index.html')
 
+@app.route('/log')
+def log_view():
+    """Render the cache log view page"""
+    return render_template('cache_log.html')
+
 @app.route('/query', methods=['POST'])
 def process_query():
     data = request.json
     query = data.get('query', '')
-    use_cache = data.get('use_cache', False)
     llm_model = data.get('llm_model', 'gemini-1.5-flash')
-    embedding_model = data.get('embedding_model', 'ollama-bge')
+    embedding_model = data.get('embedding_model', 'redis-langcache')
 
-    print(f"Processing query: '{query}', use_cache: {use_cache}, llm_model: {llm_model}, embedding_model: {embedding_model}")
+    print(f"Processing query: '{query}', llm_model: {llm_model}, embedding_model: {embedding_model}")
 
-    if use_cache:
-        # This is the semantic cache panel
-        # First, check if we have a similar query in the Redis semantic cache
-        cache_start_time = time.time()
-        cached_result = search_cache(query, embedding_model)
-        cache_time = time.time() - cache_start_time
+    # Always use the semantic cache workflow
+    cache_start_time = time.time()
+    cached_result = search_cache(query, embedding_model)
+    cache_time = time.time() - cache_start_time
 
-        # Get embedding and Redis search times if available
-        embedding_time = 0
-        redis_search_time = 0
-        if cached_result and 'embedding_time' in cached_result:
-            embedding_time = cached_result['embedding_time']
-        if cached_result and 'redis_search_time' in cached_result:
-            redis_search_time = cached_result['redis_search_time']
+    # Get embedding and Redis search times if available
+    embedding_time = 0
+    redis_search_time = 0
+    if cached_result and 'embedding_time' in cached_result:
+        embedding_time = cached_result['embedding_time']
+    if cached_result and 'redis_search_time' in cached_result:
+        redis_search_time = cached_result['redis_search_time']
 
-        # The cache search time is the total time for the cache operation
-        # This includes embedding generation + searching in Redis + returning results
+    # The cache search time is the total time for the cache operation
+    # This includes embedding generation + searching in Redis + returning results
 
-        # For debugging
-        print(f"Total cache time: {cache_time:.4f}s, Embedding time: {embedding_time:.4f}s, Redis search time: {redis_search_time:.6f}s")
-        print(f"Percentage breakdown - Embedding: {(embedding_time/cache_time)*100:.2f}%, Redis search: {(redis_search_time/cache_time)*100:.2f}%, Other: {((cache_time-embedding_time-redis_search_time)/cache_time)*100:.2f}%")
+    # For debugging
+    print(f"Total cache time: {cache_time:.4f}s, Embedding time: {embedding_time:.4f}s, Redis search time: {redis_search_time:.6f}s")
+    print(f"Percentage breakdown - Embedding: {(embedding_time/cache_time)*100 if cache_time else 0:.2f}%, Redis search: {(redis_search_time/cache_time)*100 if cache_time else 0:.2f}%, Other: {((cache_time-embedding_time-redis_search_time)/cache_time)*100 if cache_time else 0:.2f}%")
 
-        # Track total cache operation latency for the specific embedding model
-        timestamp = get_current_timestamp()
-        latency_data[embedding_model]['cache'][timestamp].append(cache_time)
+    # Track total cache operation latency for the specific embedding model
+    timestamp = get_current_timestamp()
+    latency_data[embedding_model]['cache'][timestamp].append(cache_time)
 
-        if cached_result and 'response' in cached_result:
-            # We found a similar query in the cache
-            similarity = cached_result.get('similarity', 'N/A')
-            print(f"Cache hit! Returning cached response with similarity {similarity}")
-            # Track cache hit for the specific embedding model
-            latency_data[embedding_model]['cache_hits'] += 1
+    if cached_result and 'response' in cached_result:
+        # We found a similar query in the cache
+        similarity = cached_result.get('similarity', 'N/A')
+        print(f"Cache hit! Returning cached response with similarity {similarity}")
+        # Track cache hit for the specific embedding model
+        latency_data[embedding_model]['cache_hits'] += 1
 
-            # Track query match for analysis
-            if 'entryId' in cached_result:
-                # Get the matched query from the cache entry ID
-                matched_query = cached_result.get('matched_query', 'Unknown')
-                # Add to query matches list
-                query_matches.append({
-                    'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                    'query': query,
-                    'matched_query': matched_query,
-                    'model': embedding_model,
-                    'similarity': similarity,
-                    'embedding_time': cached_result.get('embedding_time', 0),
-                    'cache_id': cached_result.get('entryId', 'Unknown')
-                })
-
-            return jsonify({
-                'response': cached_result['response'],
-                'source': 'cache',
-                'time_taken': cache_time,
-                'similarity': similarity
+        # Track query match for analysis
+        if 'entryId' in cached_result:
+            # Get the matched query from the cache entry ID
+            matched_query = cached_result.get('matched_query', 'Unknown')
+            # Add to query matches list
+            query_matches.append({
+                'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'query': query,
+                'matched_query': matched_query,
+                'model': embedding_model,
+                'similarity': similarity,
+                'embedding_time': cached_result.get('embedding_time', 0),
+                'cache_id': cached_result.get('entryId', 'Unknown')
             })
 
-        # No cache hit, need to call the LLM and store the result
-        print("Cache miss. Calling LLM and storing result...")
-        # Track cache miss for the specific embedding model
-        latency_data[embedding_model]['cache_misses'] += 1
-
-        llm_start_time = time.time()
-        response = generate_gemini_response(query, llm_model)
-        llm_time = time.time() - llm_start_time
-
-        # Calculate total time (cache search + LLM)
-        total_time = cache_time + llm_time
-
-        # Track LLM latency for the specific embedding model
-        timestamp = get_current_timestamp()
-        latency_data[embedding_model]['llm'][timestamp].append(llm_time)
-
-        # Update operations log with LLM timing
-        if operations_log.get('query') == query and operations_log.get('embedding_model') == embedding_model:
-            # Find the LLM generation step if it exists
-            llm_step = next((step for step in operations_log['steps'] if step['step'] == 'LLM GENERATION'), None)
-
-            if llm_step:
-                # Update existing step
-                llm_step['details']['llm_response_time'] = f"{llm_time:.3f}s"
-                llm_step['details']['model'] = llm_model
-            else:
-                # Add new step
-                operations_log['steps'].append({
-                    'step': 'LLM GENERATION',
-                    'timestamp': datetime.datetime.now().strftime('%H:%M:%S'),
-                    'details': {
-                        'model': llm_model,
-                        'llm_response_time': f"{llm_time:.3f}s"
-                    }
-                })
-
-            # Update result summary
-            operations_log['result']['total_time'] = total_time
-
-        # Store this response in the cache for future use
-        try:
-            add_to_cache(query, response, embedding_model)
-        except Exception as e:
-            print(f"Error adding response to cache: {e}")
+        # Log the cache hit
+        log_manager.log_query(
+            query=query,
+            model=embedding_model,
+            result='hit',
+            similarity=similarity,
+            response_time=cache_time,
+            matched_query=cached_result.get('matched_query', 'Unknown')
+        )
 
         return jsonify({
-            'response': response,
-            'source': 'llm',
-            'time_taken': total_time  # Return the total time
-        })
-    else:
-        # This is the direct LLM panel - always call the LLM directly
-        print("Direct LLM query (no cache). Calling LLM...")
-        llm_start_time = time.time()
-        response = generate_gemini_response(query, llm_model)
-        llm_time = time.time() - llm_start_time
-
-        # Track LLM latency for direct queries in the separate 'direct-llm' category
-        timestamp = get_current_timestamp()
-        latency_data['direct-llm']['llm'][timestamp].append(llm_time)
-
-        # Also track which LLM model was used
-        latency_data['direct-llm']['models'][llm_model] += 1
-
-        return jsonify({
-            'response': response,
-            'source': 'llm',
-            'time_taken': llm_time
+            'response': cached_result['response'],
+            'source': 'cache',
+            'time_taken': cache_time,
+            'similarity': similarity
         })
 
+    # No cache hit, need to call the LLM and store the result
+    print("Cache miss. Calling LLM and storing result...")
+    # Track cache miss for the specific embedding model
+    latency_data[embedding_model]['cache_misses'] += 1
+
+    llm_start_time = time.time()
+    response = generate_gemini_response(query, llm_model)
+    llm_time = time.time() - llm_start_time
+
+    # Calculate total time (cache search + LLM)
+    total_time = cache_time + llm_time
+
+    # Track LLM latency for the specific embedding model
+    timestamp = get_current_timestamp()
+    latency_data[embedding_model]['llm'][timestamp].append(llm_time)
+
+    # Update operations log with LLM timing
+    if operations_log.get('query') == query and operations_log.get('embedding_model') == embedding_model:
+        # Find the LLM generation step if it exists
+        llm_step = next((step for step in operations_log['steps'] if step['step'] == 'LLM GENERATION'), None)
+
+        if llm_step:
+            # Update existing step
+            llm_step['details']['llm_response_time'] = f"{llm_time:.3f}s"
+            llm_step['details']['model'] = llm_model
+        else:
+            # Add new step
+            operations_log['steps'].append({
+                'step': 'LLM GENERATION',
+                'timestamp': datetime.datetime.now().strftime('%H:%M:%S'),
+                'details': {
+                    'model': llm_model,
+                    'llm_response_time': f"{llm_time:.3f}s"
+                }
+            })
+
+        # Update result summary
+        operations_log['result']['total_time'] = total_time
+
+    # Store this response in the cache for future use
+    try:
+        add_to_cache(query, response, embedding_model)
+    except Exception as e:
+        print(f"Error adding response to cache: {e}")
+
+    # Log the cache miss
+    log_manager.log_query(
+        query=query,
+        model=embedding_model,
+        result='miss',
+        response_time=total_time
+    )
+
+    return jsonify({
+        'response': response,
+        'source': 'llm',
+        'time_taken': total_time  # Return the total time
+    })
 
 def generate_gemini_response(query, model_name="gemini-1.5-flash"):
     """Generate a response using Google's Gemini LLM"""
@@ -722,26 +706,6 @@ def get_latency_data():
             'cache_hit_rate': round(cache_hit_rate, 2) if cache_hit_rate > 0 else 0
         }
 
-    # Process direct LLM queries (not tied to any embedding model)
-    direct_llm_data = latency_data['direct-llm']
-    current_direct_llm_latency = None
-
-    # Direct LLM latency
-    if current_timestamp in direct_llm_data['llm'] and direct_llm_data['llm'][current_timestamp]:
-        current_direct_llm_latency = statistics.mean(direct_llm_data['llm'][current_timestamp])
-
-    # Get most used LLM model
-    most_used_model = None
-    if direct_llm_data['models']:
-        most_used_model = max(direct_llm_data['models'].items(), key=lambda x: x[1])[0]
-
-    # Store metrics for direct LLM queries
-    result['direct-llm'] = {
-        'current_llm_latency': round(current_direct_llm_latency, 3) if current_direct_llm_latency is not None else None,
-        'most_used_model': most_used_model,
-        'query_count': sum(direct_llm_data['models'].values())
-    }
-
     return jsonify(result)
 
 @app.route('/query-analysis')
@@ -763,7 +727,7 @@ def get_query_analysis():
     return jsonify({
         'matches': sorted_matches,
         'total': len(sorted_matches),
-        'models': ['ollama-bge', 'redis-langcache', 'openai-embeddings']
+        'models': ['ollama-bge', 'redis-langcache']
     })
 
 @app.route('/operations-log')
@@ -772,7 +736,34 @@ def get_operations_log():
     return jsonify(operations_log)
 
 
+@app.route('/cache-log')
+def get_cache_log():
+    """Return the cache log file content"""
+    try:
+        with open(log_manager.log_file_path, 'r') as f:
+            content = f.read()
+        return content
+    except Exception as e:
+        return f"Error reading log file: {str(e)}"
+
+
+@app.route('/init-cache', methods=['GET'])
+def init_cache():
+    """Initialize the cache for all embedding models"""
+    try:
+        create_cache()
+        return jsonify({"status": "success", "message": "Cache initialization completed successfully."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Could not initialize cache: {str(e)}"})
+
+
 if __name__ == '__main__':
     # Create caches for each embedding model
-    create_cache()
-    app.run(debug=True, port=5001)
+    try:
+        create_cache()
+        print("Cache initialization completed successfully.")
+    except Exception as e:
+        print(f"Warning: Could not initialize cache: {e}")
+
+    # Run the application with debug mode disabled to prevent double initialization
+    app.run(debug=False, port=5001)

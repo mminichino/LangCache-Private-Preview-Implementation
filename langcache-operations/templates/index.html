@@ -50,7 +50,6 @@
                 <select id="embedding-model">
                     <option value="redis-langcache" selected>Redis: Langcache-Embed</option>
                     <option value="ollama-bge">Ollama: BGE-3</option>
-                    <option value="openai-embeddings">OpenAI Embeddings</option>
                 </select>
             </div>
         </div>
@@ -131,25 +130,6 @@
             <h2>Latency Metrics</h2>
             <p>Current latency metrics for LLM and Cache operations.</p>
 
-            <!-- Direct LLM Queries Metrics (not tied to any embedding model) -->
-            <div class="model-section">
-                <h3 class="model-heading">Direct LLM Queries</h3>
-                <div class="metrics-summary">
-                    <div class="metric-card">
-                        <h4>LLM Latency</h4>
-                        <div class="metric-value" id="direct-llm-llm-latency">-</div>
-                    </div>
-                    <div class="metric-card">
-                        <h4>Most Used Model</h4>
-                        <div class="metric-value" id="direct-llm-most-used-model">-</div>
-                    </div>
-                    <div class="metric-card">
-                        <h4>Query Count</h4>
-                        <div class="metric-value" id="direct-llm-query-count">-</div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Redis Langcache-Embed Metrics -->
             <div class="model-section">
                 <h3 class="model-heading">Redis Langcache-Embed</h3>
@@ -174,34 +154,6 @@
                     <div class="metric-card">
                         <h4>Cache Hit Rate</h4>
                         <div class="metric-value" id="redis-langcache-cache-hit-rate">-</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- OpenAI Embeddings Metrics -->
-            <div class="model-section">
-                <h3 class="model-heading">OpenAI Embeddings</h3>
-                <div class="metrics-summary">
-                    <div class="metric-card cache-operations">
-                        <h4>Cache Operations</h4>
-                        <div class="metric-breakdown">
-                            <div class="breakdown-item">
-                                <span class="breakdown-label">Total:</span>
-                                <span class="breakdown-value" id="openai-embeddings-cache-latency">-</span>
-                            </div>
-                            <div class="breakdown-item">
-                                <span class="breakdown-label">Embedding:</span>
-                                <span class="breakdown-value" id="openai-embeddings-embedding-latency">-</span>
-                            </div>
-                            <div class="breakdown-item">
-                                <span class="breakdown-label">Redis Search:</span>
-                                <span class="breakdown-value" id="openai-embeddings-redis-latency">-</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <h4>Cache Hit Rate</h4>
-                        <div class="metric-value" id="openai-embeddings-cache-hit-rate">-</div>
                     </div>
                 </div>
             </div>
@@ -247,7 +199,6 @@
                 <select id="model-filter">
                     <option value="all">All Models</option>
                     <option value="redis-langcache">Redis Langcache-Embed</option>
-                    <option value="openai-embeddings">OpenAI Embeddings</option>
                     <option value="ollama-bge">Ollama BGE-3</option>
                 </select>
             </div>
@@ -308,47 +259,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Settings Tab Content -->
-    <div class="tab-content" id="settings-content" style="display: none;">
-        <div class="settings-wrapper">
-            <div class="settings-container">
-                <h2>Cache Settings</h2>
-                <p>Configure how the semantic cache operates.</p>
-
-                <div class="settings-section">
-                    <div class="setting-item">
-                        <div class="setting-label">
-                            <label for="ngram-toggle">Use N-gram Approximation</label>
-                            <p class="setting-description">Use lightweight n-gram analysis to predict cache hits before generating embeddings. This can reduce latency for likely cache misses.</p>
-                        </div>
-                        <div class="setting-control">
-                            <label class="switch">
-                                <input type="checkbox" id="ngram-toggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="setting-item" id="threshold-container" style="display: none;">
-                        <div class="setting-label">
-                            <label for="probability-threshold">Probability Threshold</label>
-                            <p class="setting-description">Minimum probability required to generate embeddings (0.1-0.9).</p>
-                        </div>
-                        <div class="setting-control">
-                            <input type="range" id="probability-threshold" min="0.1" max="0.9" step="0.1" value="0.5">
-                            <span id="threshold-value">0.5</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="settings-actions">
-                    <button id="save-settings" class="primary-button">Save Settings</button>
-                    <button id="reset-settings" class="secondary-button">Reset to Defaults</button>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <footer>
@@ -359,6 +269,5 @@
 <script src="{{ url_for('static', filename='js/latency.js') }}"></script>
 <script src="{{ url_for('static', filename='js/query-analysis.js') }}"></script>
 <script src="{{ url_for('static', filename='js/operations-log.js') }}"></script>
-<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 </body>
 </html>

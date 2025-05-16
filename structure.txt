@@ -1,0 +1,72 @@
+total 24
+-rw-r--r--@ 1 jen.agarwal  staff  6301 May 16 13:19 README.md
+-rw-r--r--@ 1 jen.agarwal  staff  2665 Apr 14 13:10 docker-compose.yaml
+drwxr-xr-x@ 6 jen.agarwal  staff   192 May 16 13:29 embeddings
+drwxr-xr-x@ 7 jen.agarwal  staff   224 May 16 13:33 langcache-operations
+drwxr-xr-x@ 7 jen.agarwal  staff   224 May 16 13:29 llm-app
+-rw-r--r--@ 1 jen.agarwal  staff     0 May 16 13:59 structure.txt
+
+./embeddings:
+total 24
+-rw-r--r--@ 1 jen.agarwal  staff   951 Apr 14 16:02 Dockerfile
+-rw-r--r--@ 1 jen.agarwal  staff  3680 Apr 14 17:15 main.py
+-rw-r--r--@ 1 jen.agarwal  staff   249 Apr 14 16:42 requirements.txt
+
+./langcache-operations:
+total 72
+-rw-r--r--@ 1 jen.agarwal  staff    604 May 16 13:33 Dockerfile
+-rw-r--r--@ 1 jen.agarwal  staff  27898 May 16 13:33 app_gcp.py
+-rw-r--r--@ 1 jen.agarwal  staff    254 May 16 13:29 requirements.txt
+drwxr-xr-x@ 4 jen.agarwal  staff    128 May 16 13:29 static
+drwxr-xr-x@ 3 jen.agarwal  staff     96 May 16 13:29 templates
+
+./langcache-operations/static:
+total 0
+drwxr-xr-x@ 4 jen.agarwal  staff  128 May 16 13:29 css
+drwxr-xr-x@ 7 jen.agarwal  staff  224 May 16 13:29 js
+
+./langcache-operations/static/css:
+total 48
+-rw-r--r--@ 1 jen.agarwal  staff   2927 May 16 13:29 operations-log.css
+-rw-r--r--@ 1 jen.agarwal  staff  17371 May 16 13:29 styles.css
+
+./langcache-operations/static/js:
+total 56
+-rw-r--r--@ 1 jen.agarwal  staff  2441 May 16 13:29 latency.js
+-rw-r--r--@ 1 jen.agarwal  staff  7312 May 16 13:29 main.js
+-rw-r--r--@ 1 jen.agarwal  staff  5971 May 16 13:29 operations-log.js
+-rw-r--r--@ 1 jen.agarwal  staff  3396 May 16 13:29 query-analysis.js
+-rw-r--r--@ 1 jen.agarwal  staff    14 May 16 13:34 settings.js
+
+./langcache-operations/templates:
+total 32
+-rw-r--r--@ 1 jen.agarwal  staff  12418 May 16 13:34 index.html
+
+./llm-app:
+total 72
+-rw-r--r--@ 1 jen.agarwal  staff    604 May 16 13:34 Dockerfile
+-rw-r--r--@ 1 jen.agarwal  staff  26993 May 16 13:33 app.py
+-rw-r--r--@ 1 jen.agarwal  staff    254 Apr 14 16:21 requirements.txt
+drwxr-xr-x@ 4 jen.agarwal  staff    128 Apr  1 08:57 static
+drwxr-xr-x@ 3 jen.agarwal  staff     96 Apr  1 08:58 templates
+
+./llm-app/static:
+total 0
+drwxr-xr-x@ 4 jen.agarwal  staff  128 Apr  7 01:43 css
+drwxr-xr-x@ 6 jen.agarwal  staff  192 May 16 13:34 js
+
+./llm-app/static/css:
+total 48
+-rw-r--r--@ 1 jen.agarwal  staff   2927 Apr  7 01:43 operations-log.css
+-rw-r--r--@ 1 jen.agarwal  staff  17371 Apr  7 02:06 styles.css
+
+./llm-app/static/js:
+total 48
+-rw-r--r--@ 1 jen.agarwal  staff  2441 May 16 13:23 latency.js
+-rw-r--r--@ 1 jen.agarwal  staff  7312 May 16 13:28 main.js
+-rw-r--r--@ 1 jen.agarwal  staff  5971 Apr  7 01:43 operations-log.js
+-rw-r--r--@ 1 jen.agarwal  staff  3396 Apr  4 08:09 query-analysis.js
+
+./llm-app/templates:
+total 32
+-rw-r--r--@ 1 jen.agarwal  staff  12418 May 16 13:34 index.html

@@ -27,16 +27,6 @@ services:
     depends_on:
       - ollama
 
-  custom-embeddings:
-    build: ./custom-embeddings
-    container_name: custom-embeddings
-    ports:
-      - "11435:11434"
-    volumes:
-      - ./custom-embeddings:/app
-    env_file:
-      - .env
-
   langcache-ollama:
     image: "artifactory.dev.redislabs.com:443/cloud-docker-dev-local/ai-services/langcache:0.0.7"
     container_name: langcache-ollama
@@ -58,12 +48,12 @@ services:
     depends_on:
       - cache
       - metadata-db
-      - custom-embeddings
+      - embeddings
     ports:
       - "8081:8080"
     environment:
       METADATABASE_URLS: redis://metadata-db:6379
-      EMBEDDINGS_CATALOG_JSON: "{\"defaultModel\":\"redis-langcache\",\"models\":{\"redis-langcache\":{\"apiKey\":\"${HF_TOKEN}\",\"baseUrl\":\"http://custom-embeddings:11434\",\"dimensions\":768,\"name\":\"redis/langcache-embed-v1\"}}}"
+      EMBEDDINGS_CATALOG_JSON: "{\"defaultModel\":\"redis-langcache\",\"models\":{\"redis-langcache\":{\"apiKey\":\"${HF_TOKEN}\",\"baseUrl\":\"http://embeddings:8080\",\"dimensions\":384,\"name\":\"redis-langcache-embed-v1\"}}}"
       LOGGING_LEVEL_ROOT: info
     env_file:
       - .env
@@ -74,13 +64,31 @@ services:
     depends_on:
       - cache
       - metadata-db
-      - custom-embeddings
+      - embeddings
     ports:
       - "8082:8080"
     environment:
       METADATABASE_URLS: redis://metadata-db:6379
       EMBEDDINGS_CATALOG_JSON: "{\"defaultModel\":\"openai-embeddings\",\"models\":{\"openai-embeddings\":{\"apiKey\":\"${OPENAI_API_KEY}\",\"baseUrl\":\"https://api.openai.com\",\"dimensions\":1536,\"name\":\"text-embedding-3-small\"}}}"
       LOGGING_LEVEL_ROOT: info
+    env_file:
+      - .env
+
+  llm-app:
+    build: ./llm-app
+    container_name: llm-app
+    ports:
+      - "5001:8080"
+    depends_on:
+      - langcache-openai
+    env_file:
+      - .env
+
+  embeddings:
+    build: ./langcache-operations/embeddings
+    container_name: embeddings
+    ports:
+      - "8083:8080"
     env_file:
       - .env
 

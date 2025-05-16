@@ -101,6 +101,13 @@ docker-compose.override.yml
 # Redis
 dump.rdb
 appendonly.aof
+redis-data/
+
+# Cache files
+cache_log.md
+cache_operations.log
+*cache_id*
+*.cache
 
 # Temporary files
 *.swp
