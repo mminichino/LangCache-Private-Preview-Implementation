@@ -104,18 +104,25 @@ LangCache is designed with a modular architecture that separates concerns and al
 ### LangCache-Enhanced LLM Application Flow
 
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  User Query  │────▶│  Embedding  │────▶│  Cache      │────▶│  Response   │
-└─────────────┘     │  Generation │     │  Lookup     │     │  to User    │
-                    └─────────────┘     └──────┬──────┘     └─────────────┘
-                                               │                    ▲
-                                               │ Cache Miss         │
-                                               ▼                    │
-                                        ┌─────────────┐     ┌─────────────┐
-                                        │  LLM API    │────▶│  Cache      │
-                                        │  (OpenAI,   │     │  Storage    │
-                                        │  Gemini)    │     └─────────────┘
-                                        └─────────────┘
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  User Query  │────▶│  Embedding  │────▶│  Cache      │
+└─────────────┘     │  Generation │     │  Lookup     │
+                    └─────────────┘     └──────┬──────┘
+                                               │
+                                               ├─────────── Cache Hit ───────────┐
+                                               │                                 │
+                                               │                                 ▼
+                                               │                          ┌─────────────┐
+                                               │                          │  Response   │
+                                               │                          │  to User    │
+                                               │                          └─────────────┘
+                                               │                                 ▲
+                                               │ Cache Miss                      │
+                                               ▼                                 │
+                                        ┌─────────────┐                   ┌─────────────┐
+                                        │  Call to    │                   │  Cache      │
+                                        │  LLM        │───────────────────▶  Storage    │
+                                        └─────────────┘                   └─────────────┘
 ```
 
 #### Key Components of the LangCache Flow:
