@@ -120,9 +120,11 @@ LangCache is designed with a modular architecture that separates concerns and al
                                                │ Cache Miss                      │
                                                ▼                                 │
                                         ┌─────────────┐                          │
-                                        │  Call to    │─────────▶ Cache Storage ─┘
-                                        │  LLM        │
-                                        └─────────────┘
+                                        │  Call to    │─────────────────────────┘
+                                        │  LLM        │             │
+                                        └─────────────┘             │
+                                                                    ▼
+                                                             Cache Storage
 ```
 
 #### Key Components of the LangCache Flow:
