@@ -105,7 +105,7 @@ LangCache is designed with a modular architecture that separates concerns and al
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  User Query │────▶│  Embedding  │────▶│  Cache      │
+│  User Query  │────▶│  Embedding  │────▶│  Cache      │
 └─────────────┘     │  Generation │     │  Lookup     │
                     └─────────────┘     └──────┬──────┘
                                                │
@@ -114,14 +114,15 @@ LangCache is designed with a modular architecture that separates concerns and al
                                                │                                 ▼
                                                │                          ┌─────────────┐
                                                │                          │  Response   │
-                                               │  Cache Miss              │  to User    │
+                                               │                          │  to User    │
                                                │                          └─────────────┘
-                                               │
-                                               │                                              
-                                        ┌─────────────┐                   ┌─────────────┐
-                                        │  Call to    │                   │  Cache      │
-                                        │  LLM        │──────────────────▶  Storage     │
-                                        └─────────────┘                   └─────────────┘
+                                               │                                 ▲
+                                               │ Cache Miss                      │
+                                               ▼                                 │
+                                        ┌─────────────┐                          │
+                                        │  Call to    │─────────▶ Cache Storage ─┘
+                                        │  LLM        │
+                                        └─────────────┘
 ```
 
 #### Key Components of the LangCache Flow:
