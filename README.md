@@ -160,6 +160,8 @@ LangCache is designed with a modular architecture that separates concerns and al
 
 ## LangCache Deployment Guide
 
+LangCache full deployment guide is here : https://miniature-goggles-w6ozyrr.pages.github.io/ but if you want to know how I implemented in this project then you can read a short version here
+
 ### Prerequisites
 - [Docker](https://www.docker.com/products/docker-desktop/) and Docker Compose
 - API keys for your preferred embedding model:
