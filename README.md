@@ -84,7 +84,7 @@ LangCache is designed with a modular architecture that separates concerns and al
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  User Query  │────▶│  LLM API    │────▶│  Response   │
+│  User Query │────▶│  LLM API    │────▶│  Response   │
 └─────────────┘     │  (OpenAI,   │     │  to User    │
                     │  Gemini,    │     └─────────────┘
                     │  etc.)      │
@@ -105,7 +105,7 @@ LangCache is designed with a modular architecture that separates concerns and al
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  User Query  │────▶│  Embedding  │────▶│  Cache      │
+│  User Query │────▶│  Embedding  │────▶│  Cache      │
 └─────────────┘     │  Generation │     │  Lookup     │
                     └─────────────┘     └──────┬──────┘
                                                │
@@ -114,14 +114,13 @@ LangCache is designed with a modular architecture that separates concerns and al
                                                │                                 ▼
                                                │                          ┌─────────────┐
                                                │                          │  Response   │
-                                               │                          │  to User    │
+                                               │  Cache Miss              │  to User    │
                                                │                          └─────────────┘
-                                               │                                 ▲
-                                               │ Cache Miss                      │
-                                               ▼                                 │
+                                               │
+                                               │                                              
                                         ┌─────────────┐                   ┌─────────────┐
                                         │  Call to    │                   │  Cache      │
-                                        │  LLM        │───────────────────▶  Storage    │
+                                        │  LLM        │──────────────────▶  Storage     │
                                         └─────────────┘                   └─────────────┘
 ```
 
