@@ -142,7 +142,7 @@ LangCache is designed with a modular architecture that separates concerns and al
 
 3. **Cache Lookup (Semantic Search)**:
    - The query embedding is compared to all stored embeddings in Redis
-   - Redis performs a vector similarity search (KNN)
+   - Redis performs a vector similarity search 
    - If a match above the similarity threshold is found, it's a cache hit
    - If no match is found, it's a cache miss
 
