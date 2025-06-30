@@ -105,7 +105,7 @@ LangCache is designed with a modular architecture that separates concerns and al
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  User Query  │────▶│  Embedding  │────▶│  Cache      │
+│  User Query │────▶│  Embedding  │────▶│  Cache      │
 └─────────────┘     │  Generation │     │  Lookup     │
                     └─────────────┘     └──────┬──────┘
                                                │
