@@ -8,11 +8,7 @@
 
 **This repository demonstrates how to integrate LangCache with your applications. While you can experiment with this demo app, the primary purpose is to showcase how to implement LangCache in your own projects. So you can go to the next section to see LangCache implementation **
 
-1. Clone this repository:
-   ```sh
-   git clone https://github.com/redis/langcache-demo.git
-   cd langcache-demo
-   ```
+1. Clone this repository
 
 2. Run the setup script:
    ```sh
