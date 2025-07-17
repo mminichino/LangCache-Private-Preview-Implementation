@@ -9,6 +9,18 @@
 - uv ([Install Guide](https://docs.astral.sh/uv/getting-started/installation/))
 - Docker CLI
 - Docker Compose v2
+- Get the container distribution from your account team (see below)
+
+### Import Containers
+```sh
+tar xzvf langcache-all-20250624-0820.tar.gz
+```
+```sh
+docker load -i langcache-docker-image-0.0.12.tar.gz
+```
+```sh
+docker load -i langcache-embeddings-api-docker-image-0.0.3.tar.gz
+```
 
 ## Quick Setup of this app if you want to test out LangCache
 
