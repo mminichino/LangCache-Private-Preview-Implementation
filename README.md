@@ -13,10 +13,10 @@
 
 ### Import Containers
 ```sh
-tar xzvf langcache-all-20250624-0820.tar.gz
+tar xzvf langcache-all-20250714-1446.tar.gz
 ```
 ```sh
-docker load -i langcache-docker-image-0.0.12.tar.gz
+docker load -i langcache-docker-image-0.0.14.tar.gz
 ```
 ```sh
 docker load -i langcache-embeddings-api-docker-image-0.0.3.tar.gz

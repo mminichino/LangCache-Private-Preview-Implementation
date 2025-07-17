@@ -30,7 +30,7 @@ services:
       - "8081:11434"
 
   langcache-provisioner:
-    image: "langcache:0.0.12"
+    image: "langcache:0.0.14"
     entrypoint: /provision-cache-index
     command: -config=/config.yaml -ignore
     depends_on:
@@ -39,7 +39,7 @@ services:
       - ./config.yaml:/config.yaml:ro
 
   langcache-redis:
-    image: "langcache:0.0.12"
+    image: "langcache:0.0.14"
     entrypoint: /server
     command: --config=/config.yaml
     depends_on:

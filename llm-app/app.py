@@ -230,10 +230,14 @@ def search_cache(query, embedding_model="redis-langcache"):
         })
         return None
 
-    url = f"{base_url}/v1/caches/{cache_id}/search"
+    url = f"{base_url}/v1/caches/{cache_id}/entries/search"
     payload = {
         "prompt": query,
-        "similarityThreshold": 0.85  # Updated threshold as requested
+        "similarityThreshold": 0.85,
+        "attributes": {
+            "language": "en",
+            "topic": "ai"
+        }
     }
 
     try:
@@ -294,9 +298,9 @@ def search_cache(query, embedding_model="redis-langcache"):
                 app.logger.info(f"Cache search response data: {data}")
 
                 # According to the API spec, the response is an array of entries
-                if data and len(data) > 0:
+                if data and len(data.get('data', [])) > 0:
                     # Return the most similar entry (first one)
-                    entry = data[0]
+                    entry = data.get('data')[0]
                     similarity = entry['similarity']
                     app.logger.info(f"Cache hit found with similarity: {similarity}")
 
@@ -447,7 +451,12 @@ def add_to_cache(query, response, embedding_model="redis-langcache"):
     url = f"{base_url}/v1/caches/{cache_id}/entries"
     payload = {
         "prompt": query,
-        "response": response
+        "response": response,
+        "attributes": {
+            "language": "en",
+            "topic": "ai"
+        },
+        "ttlMillis": 84003305
     }
 
     try:
