@@ -1,11 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 import time
-import random
-import json
 import os
 import requests
+from requests import Response
 from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 import datetime
 import statistics
 from collections import defaultdict
@@ -14,7 +12,7 @@ from google import genai
 from openai import OpenAI
 from log_manager import log_manager
 import logging
-from tenacity import Retrying, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import Retrying, stop_after_attempt, wait_exponential, retry_if_exception_type, retry
 
 # Load environment variables from .env file
 load_dotenv()
@@ -102,25 +100,30 @@ operations_log = {
 
 # Query match tracking
 query_matches = []
-# Format: [
-#   {
-#     'timestamp': '2025-04-04 12:00',
-#     'query': 'user query',
-#     'matched_query': 'cache query',
-#     'model': 'embedding model name',
-#     'similarity': 0.95,
-#     'embedding_time': 0.5,  # seconds
-#     'cache_id': 'cache entry id'
-#   },
-#   ...
-# ]
 
 # Cache queries for n-gram analysis
 cached_queries = {}
-# Format: {
-#   'cache_id': 'query text',
-#   ...
-# }
+
+retryer = Retrying(
+    reraise=True,
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=0.5, max=5),
+    retry=retry_if_exception_type(
+        (
+            requests.exceptions.Timeout,
+            requests.exceptions.ConnectionError
+        )
+    )
+)
+
+def rest_post(
+        url: str,
+        data: dict,
+        timeout: int = 5
+) -> Response:
+    response = session.post(url, json=data, timeout=timeout)
+    response.raise_for_status()
+    return response
 
 def get_current_timestamp():
     """Get current timestamp in format 'YYYY-MM-DD HH:MM' rounded to nearest 15 min"""
@@ -249,23 +252,10 @@ def search_cache(query, embedding_model="redis-langcache"):
 
         # First part: Generate embeddings and send request
         try:
-            for attempt in Retrying(
-                    stop=stop_after_attempt(5),
-                    wait=wait_exponential(multiplier=0.5, max=5),
-                    retry=retry_if_exception_type(
-                        (
-                            requests.exceptions.Timeout,
-                            requests.exceptions.ConnectionError
-                        )
-                    )
-            ):
-                with attempt:
-                    app.logger.info(f"Search: Attempting to POST to {url}")
-                    embedding_start_time = time.time()
-                    response = session.post(url, json=payload, timeout=5)
-                    embedding_time = time.time() - embedding_start_time
-                    response.raise_for_status()
-                    break
+            app.logger.info(f"Search: Attempting to POST to {url}")
+            embedding_start_time = time.time()
+            response = retryer(rest_post, url, payload, 5)
+            embedding_time = time.time() - embedding_start_time
         except requests.exceptions.Timeout:
             app.logger.error(f"Timeout when calling {url}")
             return None
@@ -476,22 +466,9 @@ def add_to_cache(query, response, embedding_model="redis-langcache"):
 
         # Make the API call
         try:
-            for attempt in Retrying(
-                    stop=stop_after_attempt(5),
-                    wait=wait_exponential(multiplier=0.5, max=5),
-                    retry=retry_if_exception_type(
-                        (
-                                requests.exceptions.Timeout,
-                                requests.exceptions.ConnectionError
-                        )
-                    )
-            ):
-                with attempt:
-                    cache_storage_start = time.time()
-                    resp = session.post(url, json=payload, timeout=5)
-                    cache_storage_time = time.time() - cache_storage_start
-                    resp.raise_for_status()
-                    break
+            cache_storage_start = time.time()
+            resp = retryer(rest_post, url, payload, 5)
+            cache_storage_time = time.time() - cache_storage_start
         except requests.exceptions.Timeout:
             app.logger.error(f"Timeout when calling {url}")
             return None
