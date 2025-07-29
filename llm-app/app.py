@@ -31,12 +31,19 @@ session.mount("https://", adapter)
 # You would need to set your API key as an environment variable or replace directly here
 API_KEY = os.environ.get('GEMINI_API_KEY', 'YOUR_API_KEY_HERE')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', 'YOUR_API_KEY_HERE')
-genai_client = genai.Client(
-    api_key=API_KEY
-)
-openai_client = OpenAI(
-    api_key=OPENAI_API_KEY
-)
+if API_KEY:
+    genai_client = genai.Client(
+        api_key=API_KEY
+    )
+else:
+    genai_client = None
+
+if OPENAI_API_KEY:
+    openai_client = OpenAI(
+        api_key=OPENAI_API_KEY
+    )
+else:
+    openai_client = None
 
 # Redis Langcache API configuration
 LANGCACHE_INDEX_NAME = 'gemini_cache'
@@ -701,6 +708,8 @@ def process_query():
 def generate_gemini_response(query, model_name="gemini-1.5-flash"):
     """Generate a response using Google's Gemini LLM"""
     try:
+        if not genai_client:
+            return "Gemini has not been configured for this demo. Please add a GCP API key."
         # Use Google Gemini
         app.logger.info(f"Calling Gemini API with query: {query}, model: {model_name}")
         # Call the actual Gemini API
@@ -718,6 +727,8 @@ def generate_gemini_response(query, model_name="gemini-1.5-flash"):
 def generate_openai_response(query, model_name="gpt-4o"):
     """Generate a response using OpenAI's OpenAI API"""
     try:
+        if not openai_client:
+            return "OpenAI has not been configured for this demo. Please add an OpenAI API key."
         response = openai_client.responses.create(
             model="gpt-4o",
             instructions="You are a helpful bot that answers general questions.",
